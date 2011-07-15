@@ -129,12 +129,7 @@
 
   self = [super initWithFrame: frame pixelFormat:fmt];
 
-   actualContext = [self openGLContext];
-   [actualContext makeCurrentContext];
-   [actualContext update];
-
-  /* Black background */
-  glClearColor (0.0, 0.0, 0.0, 0.0);
+  [self setOpenGLContext: [[NSOpenGLContext alloc] initWithFormat:fmt shareContext:nil]];
 
   pi_texture = 0;
   data = nil;
@@ -143,8 +138,19 @@
 
   GST_LOG ("Width: %d Height: %d", width, height);
 
-  [self initTextures];
   return self;
+}
+
+- (void) prepareOpenGL {
+  [super prepareOpenGL];
+  actualContext = [self openGLContext];
+  //[actualContext makeCurrentContext];
+  //[actualContext update];
+
+  /* Black background */
+  glClearColor (0.0, 0.0, 0.0, 0.0);
+
+  [self initTextures];
 }
 
 - (void) reshape {
@@ -156,8 +162,6 @@
     return;
   }
 
-  [actualContext makeCurrentContext];
-
   bounds = [self bounds];
 
   glViewport (0, 0, (GLint) bounds.size.width, (GLint) bounds.size.height);
@@ -166,18 +170,11 @@
 
 - (void) initTextures {
 
-  [actualContext makeCurrentContext];
-
   /* Free previous texture if any */
   if (pi_texture) {
     glDeleteTextures (1, (GLuint *)&pi_texture);
   }
 
-  if (data) {
-    data = g_realloc (data, width * height * sizeof(short)); // short or 3byte?
-  } else {
-    data = g_malloc0(width * height * sizeof(short));
-  }
   /* Create textures */
   glGenTextures (1, (GLuint *)&pi_texture);
 
@@ -224,8 +221,6 @@
 
   GST_LOG ("Reloading Texture");
 
-  [actualContext makeCurrentContext];
-
   glBindTexture (GL_TEXTURE_RECTANGLE_EXT, pi_texture);
   glPixelStorei (GL_UNPACK_ROW_LENGTH, width);
 
@@ -264,7 +259,6 @@
 - (void) drawRect:(NSRect) rect {
   GLint params[] = { 1 };
 
-  [actualContext makeCurrentContext];
 
   CGLSetParameter (CGLGetCurrentContext (), kCGLCPSwapInterval, params);
 
@@ -272,9 +266,9 @@
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   if (!initDone) {
-    [actualContext flushBuffer];
     return;
   }
+  [self reloadTexture];
 
   /* Draw */
   glBindTexture (GL_TEXTURE_RECTANGLE_EXT, pi_texture); // FIXME
@@ -284,15 +278,8 @@
 }
 
 - (void) displayTexture {
-  if ([self lockFocusIfCanDraw]) {
-
-    [self drawRect:[self bounds]];
-    [self reloadTexture];
-
-    [self unlockFocus];
-
-  }
-
+  [self performSelectorOnMainThread:@selector(display)
+      withObject:(id) nil waitUntilDone:NO];
 }
 
 - (char *) getTextureBuffer {
@@ -380,7 +367,14 @@
 //  if (data) g_free(data);
 
 //  data = g_malloc0 (2 * w * h);
-  [self initTextures];
+  if (data) {
+    data = g_realloc (data, width * height * sizeof(short)); // short or 3byte?
+  } else {
+    data = g_malloc0(width * height * sizeof(short));
+  }
+
+	[self performSelectorOnMainThread:@selector(initTextures)
+			withObject: nil waitUntilDone:YES];
 }
 
 - (void) haveSuperviewReal:(NSMutableArray *)closure {

@@ -153,7 +153,7 @@ gst_osx_video_sink_osxwindow_destroy (GstOSXVideoSink * osxvideosink)
     if (osxvideosink->superview) {
       [osxvideosink->osxwindow->gstview
           performSelectorOnMainThread:@selector(removeFromSuperview:)
-            withObject:(id)nil waitUntilDone:YES];
+            withObject:(id)nil waitUntilDone:NO];
     }
     [osxvideosink->osxwindow->gstview release];
 
