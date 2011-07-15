@@ -42,7 +42,7 @@ OSX_AUDIO_DIR=
 endif
 
 if USE_OSX_VIDEO
-OSX_VIDEO_DIR=osxvideo
+OSX_VIDEO_DIR=calayer
 else
 OSX_VIDEO_DIR=
 endif
@@ -85,6 +85,6 @@ endif
 
 SUBDIRS=$(DIRECTSOUND_DIR) $(WAVEFORM_DIR) $(OSS_DIR) $(OSS4_DIR) $(OSX_AUDIO_DIR) $(OSX_VIDEO_DIR) $(SUNAUDIO_DIR) $(V4L2_DIR) $(XIMAGE_DIR)
 
-DIST_SUBDIRS=directsound oss oss4 osxaudio osxvideo sunaudio v4l2 waveform ximage
+DIST_SUBDIRS=directsound oss oss4 osxaudio calayer osxvideo sunaudio v4l2 waveform ximage
 
 include $(top_srcdir)/common/parallel-subdirs.mak

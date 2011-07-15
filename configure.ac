@@ -1192,6 +1192,7 @@ sys/oss/Makefile
 sys/oss4/Makefile
 sys/osxaudio/Makefile
 sys/osxvideo/Makefile
+sys/calayer/Makefile
 sys/sunaudio/Makefile
 sys/v4l2/Makefile
 sys/waveform/Makefile
