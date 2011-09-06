@@ -118,7 +118,7 @@ gst_ca_layer_sink_layer_reparent (CALayer *layer, CALayer *parent_layer) {
   layer.autoresizingMask = 
     kCALayerWidthSizable|kCALayerHeightSizable;
   [parent_layer addSublayer: layer];
-  layer.backgroundColor = CGColorCreateGenericRGB (0.0, 0.0, 1.0, 1.0);
+  //layer.backgroundColor = CGColorCreateGenericRGB (0.0, 0.0, 1.0, 1.0);
   [parent_layer setNeedsDisplay];
 }
 
