@@ -1978,8 +1978,9 @@ gst_qt_mux_pad_fragment_add_buffer (GstQTMux * qtmux, GstQTPad * pad,
   if (G_UNLIKELY (!pad->traf || force))
     goto init;
 
+  //printf ("pad %s: timestamp: %ld \n", gst_pad_get_name(pad->collect.pad), buf->timestamp);
   if (G_UNLIKELY (pad->force_fragment_time != GST_CLOCK_TIME_NONE &&
-          pad->force_fragment_time < buf->timestamp)) {
+          pad->force_fragment_time <= buf->timestamp)) {
     GST_LOG_OBJECT (qtmux, "Forcing FKU fragment on pad %s at time %ld",
         gst_pad_get_name (pad->collect.pad), pad->last_buf->timestamp);
     //printf ("pad %s: timestamp: %ld --- CUT \n", gst_pad_get_name(pad->collect.pad), buf->timestamp);
@@ -2047,6 +2048,8 @@ flush:
         }
         walk = g_slist_next (walk);
       }
+
+      pad->force_fragment_time = GST_CLOCK_TIME_NONE;
 
       if (all_pad_flushed) {
         GstClockTime running_time;
@@ -3333,6 +3336,7 @@ gst_qt_mux_sink_event (GstCollectPads2 * pads, GstCollectData2 * data,
   GstQTMux *qtmux;
   guint32 avg_bitrate = 0, max_bitrate = 0;
   GstPad *pad = data->pad;
+  gboolean ret = FALSE;
 
   qtmux = GST_QT_MUX_CAST (user_data);
   switch (GST_EVENT_TYPE (event)) {
@@ -3370,6 +3374,7 @@ gst_qt_mux_sink_event (GstCollectPads2 * pads, GstCollectData2 * data,
       gboolean all_headers;
       guint count;
 
+      ret = TRUE;
       if (!gst_video_event_is_force_key_unit (event))
         goto out;
 
@@ -3396,7 +3401,7 @@ gst_qt_mux_sink_event (GstCollectPads2 * pads, GstCollectData2 * data,
 
   /* now GstCollectPads2 can take care of the rest, e.g. EOS */
 out:
-  return FALSE;
+  return ret;
 }
 
 static gboolean
