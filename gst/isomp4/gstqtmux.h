@@ -126,6 +126,8 @@ struct _GstQTPad
   gint64 fragment_duration;
   /* optional fragment index book-keeping */
   AtomTFRA *tfra;
+  /* fragment time */
+  gint64 force_fragment_time;
 
   /* if nothing is set, it won't be called */
   GstQTPadPrepareBufferFunc prepare_buf_func;
@@ -190,6 +192,10 @@ struct _GstQTMux
   gchar *moov_recov_file_path;
   guint32 fragment_duration;
   gboolean streamable;
+
+  GstClockTime pending_key_unit_ts;
+  GstEvent *force_key_unit_event;
+  GstEvent *pending_downstream_key_unit_event;
 
   /* for request pad naming */
   guint video_pads, audio_pads;

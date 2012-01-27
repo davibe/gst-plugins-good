@@ -8,6 +8,7 @@ libgstisomp4_la_LIBADD = \
     -lgstaudio-@GST_MAJORMINOR@ \
     -lgstrtp-@GST_MAJORMINOR@ \
     -lgsttag-@GST_MAJORMINOR@ \
+    -lgstvideo-@GST_MAJORMINOR@ \
     -lgstpbutils-@GST_MAJORMINOR@ \
     $(GST_BASE_LIBS) $(GST_LIBS) $(ZLIB_LIBS)
 libgstisomp4_la_LDFLAGS = ${GST_PLUGIN_LDFLAGS}
