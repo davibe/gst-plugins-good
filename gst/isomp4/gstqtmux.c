@@ -1707,7 +1707,7 @@ gst_qt_mux_start_file (GstQTMux * qtmux)
     /* well, it's moov pos if fragmented ... */
     qtmux->mdat_pos = qtmux->header_size;
 
-    if (qtmux->fragment_duration) {
+    if (qtmux->fragment_duration || qtmux->fragment_sequence == 1) {
       GST_DEBUG_OBJECT (qtmux, "fragment duration %d ms, writing headers",
           qtmux->fragment_duration);
       /* also used as snapshot marker to indicate fragmented file */
@@ -2625,10 +2625,10 @@ gst_qt_mux_handle_buffer (GstCollectPads2 * pads, GstCollectData2 * cdata,
           walk = g_slist_next (walk);
         }
 
-        /* enable fragmentation if not enabled
-           if (qtmux->fragment_sequence == 0) {
-           qtmux->fragment_sequence = 1;
-           } */
+        /* enable fragmentation if not enabled */
+        if (qtmux->fragment_sequence == 0) {
+          qtmux->fragment_sequence = 1;
+        }
 
       }
     }
