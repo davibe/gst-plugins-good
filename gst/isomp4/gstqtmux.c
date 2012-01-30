@@ -381,7 +381,7 @@ gst_qt_mux_pad_reset (GstQTPad * qtpad)
   qtpad->ts_n_entries = 0;
   qtpad->total_duration = 0;
   qtpad->total_bytes = 0;
-  qtpad->force_fragment_time = GST_CLOCK_TIME_NONE;
+  qtpad->flush_time = GST_CLOCK_TIME_NONE;
 
   qtpad->buf_head = 0;
   qtpad->buf_tail = 0;
@@ -1979,13 +1979,13 @@ gst_qt_mux_pad_fragment_add_buffer (GstQTMux * qtmux, GstQTPad * pad,
     goto init;
 
   //printf ("pad %s: timestamp: %ld \n", gst_pad_get_name(pad->collect.pad), buf->timestamp);
-  if (G_UNLIKELY (pad->force_fragment_time != GST_CLOCK_TIME_NONE &&
-          pad->force_fragment_time <= buf->timestamp)) {
+  if (G_UNLIKELY (pad->flush_time != GST_CLOCK_TIME_NONE &&
+          pad->flush_time <= buf->timestamp)) {
     GST_LOG_OBJECT (qtmux, "Forcing FKU fragment on pad %s at time %ld",
         gst_pad_get_name (pad->collect.pad), pad->last_buf->timestamp);
     //printf ("pad %s: timestamp: %ld --- CUT \n", gst_pad_get_name(pad->collect.pad), buf->timestamp);
     force = TRUE;
-    pad->force_fragment_time = GST_CLOCK_TIME_NONE;
+    pad->flush_time = GST_CLOCK_TIME_NONE;
   }
 
 flush:
@@ -2043,13 +2043,13 @@ flush:
       walk = qtmux->collect->pad_list;
       while (walk) {
         collected_pad = (GstQTPad *) walk->data;
-        if (collected_pad->force_fragment_time != GST_CLOCK_TIME_NONE) {
+        if (collected_pad->flush_time != GST_CLOCK_TIME_NONE) {
           all_pad_flushed = FALSE;
         }
         walk = g_slist_next (walk);
       }
 
-      pad->force_fragment_time = GST_CLOCK_TIME_NONE;
+      pad->flush_time = GST_CLOCK_TIME_NONE;
 
       if (all_pad_flushed) {
         GstClockTime running_time;
@@ -2621,7 +2621,7 @@ gst_qt_mux_handle_buffer (GstCollectPads2 * pads, GstCollectData2 * cdata,
         walk = qtmux->collect->pad_list;
         while (walk) {
           collected_pad = (GstQTPad *) walk->data;
-          collected_pad->force_fragment_time = running_time;
+          collected_pad->flush_time = running_time;
           walk = g_slist_next (walk);
         }
 

@@ -127,7 +127,7 @@ struct _GstQTPad
   /* optional fragment index book-keeping */
   AtomTFRA *tfra;
   /* fragment time */
-  gint64 force_fragment_time;
+  gint64 flush_time;
 
   /* if nothing is set, it won't be called */
   GstQTPadPrepareBufferFunc prepare_buf_func;
