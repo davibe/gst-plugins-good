@@ -1978,12 +1978,10 @@ gst_qt_mux_pad_fragment_add_buffer (GstQTMux * qtmux, GstQTPad * pad,
   if (G_UNLIKELY (!pad->traf || force))
     goto init;
 
-  //printf ("pad %s: timestamp: %ld \n", gst_pad_get_name(pad->collect.pad), buf->timestamp);
   if (G_UNLIKELY (pad->flush_time != GST_CLOCK_TIME_NONE &&
           pad->flush_time <= buf->timestamp)) {
     GST_LOG_OBJECT (qtmux, "Forcing FKU fragment on pad %s at time %ld",
         gst_pad_get_name (pad->collect.pad), pad->last_buf->timestamp);
-    //printf ("pad %s: timestamp: %ld --- CUT \n", gst_pad_get_name(pad->collect.pad), buf->timestamp);
     force = TRUE;
     pad->flush_time = GST_CLOCK_TIME_NONE;
   }
