@@ -1973,15 +1973,19 @@ gst_qt_mux_pad_fragment_add_buffer (GstQTMux * qtmux, GstQTPad * pad,
     guint32 delta, guint32 size, gboolean sync, gint64 pts_offset)
 {
   GstFlowReturn ret = GST_FLOW_OK;
+  GstClockTime buf_running_time;
 
   /* setup if needed */
   if (G_UNLIKELY (!pad->traf || force))
     goto init;
 
+  buf_running_time = gst_segment_to_running_time (&pad->collect.segment,
+      GST_FORMAT_TIME, buf->timestamp);
+
   if (G_UNLIKELY (pad->flush_time != GST_CLOCK_TIME_NONE &&
           pad->flush_time <= buf->timestamp)) {
-    GST_LOG_OBJECT (qtmux, "Forcing FKU fragment on pad %s at time %ld",
-        gst_pad_get_name (pad->collect.pad), pad->last_buf->timestamp);
+    GST_LOG_OBJECT (qtmux, "Forcing FKU fragment on pad %s at running time %ld",
+        gst_pad_get_name (pad->collect.pad), buf_running_time);
     force = TRUE;
     pad->flush_time = GST_CLOCK_TIME_NONE;
   }
