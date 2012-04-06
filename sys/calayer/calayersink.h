@@ -58,6 +58,7 @@ struct _GstCALayerSink {
   GstVideoSink videosink;
   GstCAOpenGLLayer *layer;
   CALayer *parent_layer;
+  bool mainLoopRunning;
 };
 
 struct _GstCALayerSinkClass {

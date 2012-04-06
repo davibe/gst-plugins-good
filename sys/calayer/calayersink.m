@@ -83,6 +83,7 @@ gst_ca_layer_sink_layer_create (GstCALayerSink * calayersink, gint width,
   g_return_val_if_fail (GST_IS_CA_LAYER_SINK (calayersink), FALSE);
   GST_DEBUG_OBJECT (calayersink, "Creating new CALayer");
 
+  calayersink->mainLoopRunning = [[NSRunLoop mainRunLoop] currentMode] != nil;
   calayersink->layer = [[[GstCAOpenGLLayer alloc] init] retain];
   
   if (calayersink->parent_layer)
@@ -211,11 +212,16 @@ gst_ca_layer_sink_show_frame (GstBaseSink * bsink, GstBuffer *buf)
   GstCALayerSink *calayersink;
   calayersink = GST_CA_LAYER_SINK (bsink);
 
-  [calayersink->layer setTextureBuffer: (void *) GST_BUFFER_DATA (buf)];
-  //gst_buffer_ref (buf);
-  printf ("%p\n", GST_BUFFER_DATA (buf));
-  [calayersink->layer display];
-  [CATransaction flush];
+  [CATransaction begin];
+  [calayersink->layer setTextureBuffer: buf];
+  [calayersink->layer setNeedsDisplay];
+  [CATransaction commit];
+
+  /* flush is usually called by the runloop. If the process we're running in
+   * doesn't have a runloop we need to flush ourselves */
+  if (!calayersink->mainLoopRunning) {
+    [CATransaction flush];
+  }
 
   return GST_FLOW_OK;
 }
