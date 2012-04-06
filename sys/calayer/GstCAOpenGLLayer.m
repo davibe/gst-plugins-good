@@ -8,14 +8,20 @@
   pi_texture = 0;
   width = 0;
   height = 0;
-  buffer = NULL;
+  current_buffer = NULL;
+  previous_buffer = NULL;
+
   needsReinit = true;
   return [super init];
 }
 
-- (void) setTextureBuffer: (void *) buf
+- (void) setTextureBuffer: (GstBuffer *) buf
 {
-  buffer = buf;
+  if (current_buffer != NULL)
+    previous_buffer = current_buffer;
+
+  current_buffer = buf;
+  gst_buffer_ref (current_buffer);
 }
 
 - (void) setVideoSize: (int) w: (int) h {
@@ -55,9 +61,12 @@
   glTexParameteri (GL_TEXTURE_RECTANGLE_EXT,
        GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
+  /* Initialize the texture with glTexImage2D.
+   * Later we use glTexSubImage2D to redefine the storage area */
   glTexImage2D (GL_TEXTURE_RECTANGLE_EXT, 0, GL_RGBA,
     width, height, 0, 
-    GL_YCBCR_422_APPLE, GL_UNSIGNED_SHORT_8_8_APPLE, buffer);
+    GL_YCBCR_422_APPLE, GL_UNSIGNED_SHORT_8_8_APPLE,
+    GST_BUFFER_DATA (current_buffer));
   
   needsReinit = false;
 }
@@ -90,6 +99,12 @@
   f_x = 1.0;
   f_y = 1.0;
 
+  /* Skip in case we are asked to draw with no buffer in place.
+   * This may happen if the application calls setNeedsDisplay but there is no 
+   * buffer ready yet */
+  if (current_buffer == NULL)
+    return;
+
   CGLSetCurrentContext(glContext);
   CGLSetParameter (CGLGetCurrentContext (), kCGLCPSwapInterval, params);
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -104,7 +119,8 @@
 
   glTexSubImage2D (GL_TEXTURE_RECTANGLE_EXT, 0, 0, 0,
        width, height,
-       GL_YCBCR_422_APPLE, GL_UNSIGNED_SHORT_8_8_APPLE, buffer);
+       GL_YCBCR_422_APPLE, GL_UNSIGNED_SHORT_8_8_APPLE,
+       GST_BUFFER_DATA (current_buffer));
 
   // bind
   glBindTexture (GL_TEXTURE_RECTANGLE_EXT, pi_texture);
@@ -126,6 +142,11 @@
 
   [super drawInCGLContext:glContext pixelFormat:pixelFormat 
       forLayerTime:timeInterval displayTime:timeStamp];
+  
+  if (previous_buffer != NULL) {
+    gst_buffer_unref (previous_buffer);
+    previous_buffer = NULL;
+  }
 }
 
 -(void)releaseCGLContext:(CGLContextObj)glContext
