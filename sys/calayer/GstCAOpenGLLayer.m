@@ -5,6 +5,7 @@
 
 - (id) init 
 {
+  id ret;
   pi_texture = 0;
   width = 0;
   height = 0;
@@ -12,7 +13,9 @@
   previous_buffer = NULL;
 
   needsReinit = true;
-  return [super init];
+  ret = [super init];
+  self.asynchronous = NO;
+  return ret;
 }
 
 - (void) setTextureBuffer: (GstBuffer *) buf
@@ -87,6 +90,10 @@
     displayTime:(const CVTimeStamp *)timeStamp
 {
   return YES;
+}
+
+- (BOOL) isAsynchronous {
+  return NO;
 }
 
 -(void)drawInCGLContext:(CGLContextObj)glContext 
